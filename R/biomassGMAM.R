@@ -17,7 +17,7 @@ globalVariables(c(
 #' @param gmcsMinAge minimum age for which to predict full effect of growth/mortality -
 #' younger ages are weighted toward a null effect with decreasing age
 #' @param cohortDefinitionCols cohortData columns that determine individual cohorts
-#' @importFrom data.table setkey data.table copy
+#' @importFrom data.table setkey data.table copy setkeyv
 #' @importFrom LandR asInteger
 #' @importFrom raster getValues projection ncell
 #' @importFrom stats na.omit predict median
@@ -128,6 +128,32 @@ calculateClimateEffect <- function(cohortData, pixelGroupMap, cceArgs,
                               "mortPred" = mortPred)
   if (modCohortDef) {
     climateEffect <- cbind(climateEffect, addedColumns)
+  }
+
+  if (length(cceArgs) > 5) {
+
+    if (!any(is.null(cceArgs$transferTable), is.null(cceArgs$BECkey),
+             is.null(cceArgs$currentBEC), is.null(cceArgs$ecoregionMap))) {
+      #we do not want all the columns in cohortData, but we need ecoregionGroup and Provenance if present
+      modCohortData <- cohortData[, .(pixelGroup, speciesCode, age, ecoregionGroup, Provenance)]
+
+      geneticEffect <- calculateGeneticEffect(cohortData = modCohortData,
+                                              BECkey = cceArgs$BECkey,
+                                              pixelGroupMap = pixelGroupMap,
+                                              transferTable = cceArgs$transferTable,
+                                              ecoregionMap = cceArgs$ecoregionMap,
+                                              currentBEC = cceArgs$currentBEC)
+
+      #this may be an issue if some cohorts are distinguished by a column in cohortDefinitionCols that is subset out
+      setkeyv(climateEffect, colnames(climateEffect)[colnames(climateEffect) %in% cohortDefinitionCols])
+      setkeyv(geneticEffect, colnames(geneticEffect)[colnames(geneticEffect) %in% cohortDefinitionCols])
+      climateEffect <- geneticEffect[climateEffect]
+      climateEffect[, growthPred := asInteger(HTp_pred * growthPred)]
+      # climateEffect[, HTp_pred := NULL] #get rid of this column
+
+    } else {
+      stop("cceArgs does not match methods available in LandR.CS")
+    }
   }
 
   #restrict predictions to those above min stand age
