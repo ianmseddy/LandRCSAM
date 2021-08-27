@@ -368,6 +368,9 @@ calculateGeneticEffect <- function(BECkey, cohortData, pixelGroupMap, transferTa
   #1. get BEC zones of each ecoregionGroup
   ecoregionKey <- as.data.table(ecoregionMap@data@attributes[[1]])
   setnames(ecoregionKey, 'ID', 'ecoregionMapCode') #Change ID, because ID in BECkey = ecoregion, not mapcode
+ #TODO: review
+  #convert from factor to character, to numeric, to factor, to drop the zero padding
+  ecoregionKey[, ecoregion := as.factor(as.numeric(as.character(ecoregion)))]
   BECkey[, ID := as.factor(as.character(ID))]
 
   ecoregionKey <- BECkey[ecoregionKey, on = c("ID" = 'ecoregion')] #now we have zsv of cohortData$ecoregionGroup
@@ -403,7 +406,7 @@ calculateGeneticEffect <- function(BECkey, cohortData, pixelGroupMap, transferTa
   }
 
   if (nrow(assignedBEC) != length(unique(projBEC$pixelGroup))) {
-    stop("Error: mismatch in pixelGroups and projected BECs, debug LandR.CS")
+    stop("Error: mismatch in pixelGroups and projected BECs, debug LandRCSAM")
   }
   rm(ties, noTies, projBEC)
 
@@ -411,12 +414,17 @@ calculateGeneticEffect <- function(BECkey, cohortData, pixelGroupMap, transferTa
   assignedBEC <- BECkey[assignedBEC, on = c("ID" = "BEC")] %>%
     .[, .(pixelGroup, zsv)]
   setnames(assignedBEC, old = "zsv", new = "currentClimate")
-  cohortData <- assignedBEC[cohortData, on = c("pixelGroup" = "pixelGroup")]
+  cohortData <- assignedBEC[cohortData, on = c("pixelGroup")]
 
   cohortData <- ecoregionKeySmall[cohortData, on = c("ecoregionGroup" = "ecoregionGroup")]
   cohortData[, zsv := NULL]
 
   setnames(transferTable, old = c("BECvarfut_plantation", "BECvar_seed"), new = c("currentClimate", "Provenance"))
+
+  if (class(cohortData$speciesCode) == "factor"){
+    transferTable[, speciesCode := factor(speciesCode)]
+    levels(transferTable$speciesCode) <- levels(cohortData$speciesCode)
+  }
 
   cohortData <- transferTable[cohortData, on = c("currentClimate" = "currentClimate",
                                                   "Provenance" = "Provenance",
