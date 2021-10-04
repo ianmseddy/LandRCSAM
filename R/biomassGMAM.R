@@ -358,6 +358,7 @@ gamlss.own <- function(x, y, w, xeval = NULL)
 #' @importFrom data.table setkey data.table setnames as.data.table
 #' @importFrom stats median
 #' @importFrom raster getValues projection
+#' @importFrom SpaDES.core paddedFloatToChar
 #' @importFrom magrittr '%>%'
 #' @rdname calculateGeneticEffect
 #' @export
@@ -371,7 +372,8 @@ calculateGeneticEffect <- function(BECkey, cohortData, pixelGroupMap, transferTa
  #TODO: review
   #convert from factor to character, to numeric, to factor, to drop the zero padding
   ecoregionKey[, ecoregion := as.factor(as.numeric(as.character(ecoregion)))]
-  BECkey[, ID := as.factor(as.character(ID))]
+  pLength <- max(nchar(as.character(ecoregionKey$ecoregion)))
+  BECkey[, ID := as.factor(paddedFloatToChar(ID, padL = pLength))]
 
   ecoregionKey <- BECkey[ecoregionKey, on = c("ID" = 'ecoregion')] #now we have zsv of cohortData$ecoregionGroup
   ecoregionKeySmall <- ecoregionKey[, .(zsv, ecoregionGroup)]
