@@ -74,7 +74,7 @@ calculateClimateEffect <- function(cohortData, pixelGroupMap, cceArgs,
   predData <- climCohortData[climValues]
 
   #remove NA values that exist only because of pixelGroupMap
-  predData <- predData[!is.na(speceisCode) & !is.na(age),]
+  predData <- predData[!is.na(speciesCode) & !is.na(age),]
 
   pixelGroupsPostSubset <- predData$pixelGroup
   agePostSubset <- predData$age
