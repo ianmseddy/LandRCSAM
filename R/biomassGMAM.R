@@ -1,7 +1,8 @@
 globalVariables(c(
   ".", "age", "logAge", "pixelGroup", "..cohortDefinitionCols", "..addedColumns", "..neededCols", ":=",
   "ecoregionGroup", "currentClimate", "BECvarfut_plantation", "BECvar_seed", "plantation", "speciesCode", "foo",
-  "zsv", "assignedBEC", "bugCatch", "ties", "HTp_pred", "Provenance", "modeBEC", "BEC", "ID", ".N", "N"
+  "zsv", "assignedBEC", "bugCatch", "ties", "HTp_pred", "Provenance", "modeBEC", "BEC", "ID", ".N", "N",
+  ""
 ))
 
 
@@ -74,7 +75,7 @@ calculateClimateEffect <- function(cohortData, pixelGroupMap, cceArgs,
   predData <- climCohortData[climValues]
 
   #remove NA values that exist only because of pixelGroupMap
-  predData <- predData[!is.na(speciesCode) & !is.na(age),]
+  predData <- predData[!is.na(speciesCode) & !is.na(age) & !is.na(CMI) & !is.na(ATA) & !is.na(CMInormal),]
 
   pixelGroupsPostSubset <- predData$pixelGroup
   agePostSubset <- predData$age
