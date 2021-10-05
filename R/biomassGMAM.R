@@ -415,7 +415,7 @@ calculateGeneticEffect <- function(BECkey, cohortData, pixelGroupMap, transferTa
 
 
 #4.Join tables
-  assignedBEC[, BEC := as.factor(paddedFloatToChar(ID, padL = pLength)]
+  assignedBEC[, BEC := as.factor(paddedFloatToChar(ID, padL = pLength))]
   assignedBEC <- BECkey[assignedBEC, on = c("ID" = "BEC")] %>%
     .[, .(pixelGroup, zsv)]
   setnames(assignedBEC, old = "zsv", new = "currentClimate")
