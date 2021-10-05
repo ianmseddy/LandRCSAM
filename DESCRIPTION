@@ -20,5 +20,6 @@ Imports:
     methods,
     raster,
     reproducible,
-    stats
+    stats,
+    SpaDES.core
 Suggests:
