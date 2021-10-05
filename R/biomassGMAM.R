@@ -2,7 +2,7 @@ globalVariables(c(
   ".", "age", "logAge", "pixelGroup", "..cohortDefinitionCols", "..addedColumns", "..neededCols", ":=",
   "ecoregionGroup", "currentClimate", "BECvarfut_plantation", "BECvar_seed", "plantation", "speciesCode", "foo",
   "zsv", "assignedBEC", "bugCatch", "ties", "HTp_pred", "Provenance", "modeBEC", "BEC", "ID", ".N", "N",
-  ""
+  "ecoregion"
 ))
 
 
@@ -385,8 +385,7 @@ calculateGeneticEffect <- function(BECkey, cohortData, pixelGroupMap, transferTa
 
 #3. Assign the mode among projected BECs for each pixelGroup
   projBEC <- data.table(pixelGroup = getValues(pixelGroupMap), BEC = getValues(currentBEC)) %>%
-    na.omit(.) %>%
-    .[, BEC := as.factor(BEC)]
+    na.omit(.)
   projBEC <- projBEC[, .N, .(pixelGroup, BEC)]
   projBEC[, modeBEC := max(N), .(pixelGroup)]
   projBEC <- projBEC[N == modeBEC] %>%
@@ -415,7 +414,7 @@ calculateGeneticEffect <- function(BECkey, cohortData, pixelGroupMap, transferTa
 
 
 #4.Join tables
-  assignedBEC[, BEC := as.factor(paddedFloatToChar(ID, padL = pLength))]
+  assignedBEC[, BEC := as.factor(paddedFloatToChar(BEC, padL = pLength))]
   assignedBEC <- BECkey[assignedBEC, on = c("ID" = "BEC")] %>%
     .[, .(pixelGroup, zsv)]
   setnames(assignedBEC, old = "zsv", new = "currentClimate")
