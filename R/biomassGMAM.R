@@ -18,7 +18,7 @@ globalVariables(c(
 #' @param gmcsMinAge minimum age for which to predict full effect of growth/mortality -
 #' younger ages are weighted toward a null effect with decreasing age
 #' @param cohortDefinitionCols cohortData columns that determine individual cohorts
-#' @importFrom data.table setkey data.table copy setkeyv
+#' @importFrom data.table setkey data.table copy .SD setkeyv
 #' @importFrom LandR asInteger
 #' @importFrom raster getValues projection ncell
 #' @importFrom stats na.omit predict median
@@ -131,20 +131,23 @@ calculateClimateEffect <- function(cohortData, pixelGroupMap, cceArgs,
     climateEffect <- cbind(climateEffect, addedColumns)
   }
 
-  if (length(cceArgs) > 5) {
+
+  if ("transferTable" %in% names(cceArgs)) {
 
     if (!any(is.null(cceArgs$transferTable), is.null(cceArgs$BECkey),
              is.null(cceArgs$currentBEC), is.null(cceArgs$ecoregionMap))) {
       #we do not want all the columns in cohortData, but we need ecoregionGroup and Provenance if present
-      modCohortData <- cohortData[, .(pixelGroup, speciesCode, age, ecoregionGroup, Provenance)]
+      modCohortData <- cohortData[, .SD, .SDcols = c("ecoregionGroup", cohortDefinitionCols)]
 
       geneticEffect <- calculateGeneticEffect(cohortData = modCohortData,
                                               BECkey = cceArgs$BECkey,
                                               pixelGroupMap = pixelGroupMap,
                                               transferTable = cceArgs$transferTable,
                                               ecoregionMap = cceArgs$ecoregionMap,
-                                              currentBEC = cceArgs$currentBEC)
-
+                                              currentBEC = cceArgs$currentBEC,
+                                              cohortDefinitionCols = cohortDefinitionCols)
+      #either modify calculateGeneticEffect to return the original table with new column, or return a vector.
+      #the issue is that if the mising column differentiates a cohort - there will a one to many join
       #this may be an issue if some cohorts are distinguished by a column in cohortDefinitionCols that is subset out
       setkeyv(climateEffect, colnames(climateEffect)[colnames(climateEffect) %in% cohortDefinitionCols])
       setkeyv(geneticEffect, colnames(geneticEffect)[colnames(geneticEffect) %in% cohortDefinitionCols])
@@ -356,14 +359,16 @@ gamlss.own <- function(x, y, w, xeval = NULL)
 #' @param transferTable a table with genetic performance of species in each variant
 #' @param currentBEC the current projected BEC zone
 #' @param ecoregionMap a raster an RAT that matches ecoregionGroup to ecoregion
-#' @importFrom data.table setkey data.table setnames as.data.table
+#' @param cohortDefinitionCols cohortData columns that determine individual cohorts
+#' @importFrom data.table setkey data.table setnames .SD as.data.table
 #' @importFrom stats median
 #' @importFrom raster getValues projection
 #' @importFrom SpaDES.core paddedFloatToChar
 #' @importFrom magrittr '%>%'
 #' @rdname calculateGeneticEffect
 #' @export
-calculateGeneticEffect <- function(BECkey, cohortData, pixelGroupMap, transferTable, currentBEC, ecoregionMap){
+calculateGeneticEffect <- function(BECkey, cohortData, pixelGroupMap, transferTable, currentBEC, ecoregionMap,
+                                   cohortDefinitionCols = c("pixelGroup", "speciesCode", "age", "Provenance")) {
 
   transferTable <- copy(transferTable) #this is necessary due to column name changes
   BECkey <- copy(BECkey) #this is necessary due to class change
@@ -433,7 +438,7 @@ calculateGeneticEffect <- function(BECkey, cohortData, pixelGroupMap, transferTa
   cohortData <- transferTable[cohortData, on = c("currentClimate" = "currentClimate",
                                                   "Provenance" = "Provenance",
                                                   "speciesCode" = "speciesCode")] %>%
-    .[, .(pixelGroup, speciesCode, age, Provenance, HTp_pred)]
+    .[, .SD, .SDcols = c(cohortDefinitionCols, "HTp_pred")]
 
   if (nrow(cohortData) != bugCatch) {
     stop("unequal row count after calculate genetic effect. debug LandR.CS")

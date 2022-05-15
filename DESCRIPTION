@@ -1,6 +1,6 @@
 Package: LandRCSAM
 Title: Climate-sensitive Growth and Mortality in LandR with genetic modifiers
-Version: 0.0.2.0002
+Version: 0.0.2.0004
 Authors@R: person("Ian", "Eddy", email = "ian.eddy@canada.ca", role = c("aut", "cre"))
 Description: This package contains climate-sensitive growth and mortality function for LandR
     with an additional genetic modifier based on provenance. 
@@ -8,10 +8,10 @@ Description: This package contains climate-sensitive growth and mortality functi
     British Columbia, Canada. Some flexibility exists in how climate-sensitivity is derived, 
     however the most robust method is to use the SpaDES modules 'PSPclean' and 'gmcsDataPrep'.
 Depends: R (>= 3.5)
-License:  GPL-3
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 Imports: 
     data.table,
     LandR,

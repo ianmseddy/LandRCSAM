@@ -10,7 +10,8 @@ calculateGeneticEffect(
   pixelGroupMap,
   transferTable,
   currentBEC,
-  ecoregionMap
+  ecoregionMap,
+  cohortDefinitionCols = c("pixelGroup", "speciesCode", "age", "Provenance")
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ calculateGeneticEffect(
 \item{currentBEC}{the current projected BEC zone}
 
 \item{ecoregionMap}{a raster an RAT that matches ecoregionGroup to ecoregion}
+
+\item{cohortDefinitionCols}{cohortData columns that determine individual cohorts}
 }
 \description{
 Predict climate induced height reduction due to genetics
